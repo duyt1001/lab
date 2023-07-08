@@ -1,0 +1,2 @@
+instName="${1:-charmm3}"
+aws --profile duyt1001 ec2 describe-instances --filters Name=instance-state-name,Values=running,pending Name=tag:Name,Values=$instName | jq -r '.Reservations[].Instances[].InstanceId'

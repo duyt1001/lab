@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+
+export AWS_PROFILE=duyt1001
+export AWS_REGION=us-east-1
+
+CharmmKey=charmm
+
+RUNNING="Name=instance-state-name,Values=running,pending"
+EXISTING="Name=instance-state-name,Values=running,pending,stopping,stopped"
+STOPPED="Name=instance-state-name,Values=stopped"
+
+ByKey="Name=key-name,Values=$CharmmKey"
+
+command=${1:-status} && shift
+
+list-instances() {
+  aws ec2 describe-instances --filters $ByState $ByKey | jq -r '.Reservations[].Instances[] as $inst | $inst.Tags[] | select(.Key=="Name") | [$inst.InstanceId, .Value, $inst.PublicIpAddress, $inst.PrivateIpAddress, $inst.State.Name] | @tsv' 
+
+}
+
+choose-instance() {
+  list-instances > /tmp/instances
+  if [ x$1 = "x" ] ; then
+    cat /tmp/instances
+    echo -n "Which instance? "
+    read -r instline
+    [ -z $instline ] && echo "abort" && exit
+  else
+    instline=$1
+  fi
+  InstanceId=$(grep $instline /tmp/instances | awk '{print $1}')
+}
+
+case $command in
+  running)
+    ByState=$RUNNING
+    list-instances
+    ;;
+  existing|status)
+    ByState=$EXISTING
+    list-instances
+    # aws ec2 describe-instance-status --instance-ids $Instances --output table
+    ;;
+  connect|ssh)
+    ByState=$RUNNING
+    choose-instance $1
+    ssh -i ~/.ssh/charmm.pem ec2-user@$InstanceId
+    ;;
+  start)
+    ByState=$STOPPED
+    choose-instance $1
+    aws ec2 start-instances --instance-ids $InstanceId
+    ;;
+  stop)
+    ByState=$RUNNING
+    choose-instance $1
+    aws ec2 stop-instances --instance-ids $InstanceId
+    ;;
+  *)
+    echo "unknown action for $command" >&2
+    ;;
+esac
