@@ -6,9 +6,11 @@
 // @match       http*://*.twitter.com/*
 // @match       http*://*.zhihu.com/*
 // @match       http*://*.booklink.me/*
+// @match       http*://*.reddit.com/*
+// @run-at      document-start
 // @grant       none
 // @version     1.0
-// @author      -
+// @author      Yuantai Du
 // @description 11/27/2023, 11:50:46 AM
 // ==/UserScript==
 
@@ -20,7 +22,6 @@
 	var fullBlock = true;
 
 	if (fullBlock) {
-		document.title = "不许动！";
 		window.history.back();
 		return;
 	}
