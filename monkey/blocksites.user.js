@@ -6,7 +6,6 @@
 // @match       http*://*.twitter.com/*
 // @match       http*://*.zhihu.com/*
 // @match       http*://*.booklink.me/*
-// @match       http*://*.reddit.com/*
 // @run-at      document-start
 // @grant       none
 // @version     1.0
